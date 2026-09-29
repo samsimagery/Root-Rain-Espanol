@@ -2,7 +2,7 @@
 
 Run from the repo root:  python3 tools/make_audio.py
 Set AZURE_SPEECH_KEY if your network doesn't add the key for you.
-The clip list matches WORDS and PARAGRAPH in index.html (w00 = first word).
+The clip list matches PHRASES in index.html (p0 = first phrase, o0 its passage, e0a/e0b its examples).
 """
 import os
 import urllib.request
@@ -11,20 +11,31 @@ REGION = "eastus"
 VOICE = "es-MX-JorgeNeural"
 
 CLIPS = {
-    "w00": "el mercado",
-    "w01": "la mañana",
-    "w02": "comprar",
-    "w03": "la fruta",
-    "w04": "el plátano",
-    "w05": "barato",
-    "w06": "el dinero",
-    "w07": "la bolsa",
-    "para": (
-        "Cada sábado por la mañana voy al mercado con mi abuela. "
-        "Ella siempre quiere comprar fruta fresca, como plátanos y mangos. "
-        "Todo es barato, pero nunca llevamos mucho dinero. "
-        "Al final, ¡mi bolsa pesa más que yo!"
+    # the three phrases
+    "p0": "de cuyo nombre no quiero acordarme",
+    "p1": "se hace camino al andar",
+    "p2": "la vida es sueño",
+    # the passages they come from, as shown on the board
+    "o0": (
+        "En un lugar de la Mancha, de cuyo nombre no quiero acordarme, "
+        "no ha mucho tiempo que vivía un hidalgo de los de lanza en astillero…"
     ),
+    "o1": (
+        "Caminante, son tus huellas el camino y nada más; "
+        "caminante, no hay camino, se hace camino al andar."
+    ),
+    "o2": (
+        "¿Qué es la vida? Una ilusión, una sombra, una ficción, "
+        "y el mayor bien es pequeño; que toda la vida es sueño, "
+        "y los sueños, sueños son."
+    ),
+    # everyday examples
+    "e0a": "Trabajé en una oficina de cuyo nombre no quiero acordarme.",
+    "e0b": "Anoche cenamos en un restaurante de cuyo nombre no quiero acordarme.",
+    "e1a": "No tengo un plan perfecto, pero se hace camino al andar.",
+    "e1b": "Aprender español es difícil, pero se hace camino al andar.",
+    "e2a": "Mi abuela siempre dice que la vida es sueño.",
+    "e2b": "Cuando miro las estrellas, siento que la vida es sueño.",
     # the three cheers between screens, read with a cheerful style
     "magnifico": "¡Magnífico!",
     "guau": "¡Guau!",
@@ -36,8 +47,8 @@ CHEERS = {"magnifico", "guau", "bravo"}
 def ssml(key, text):
     if key in CHEERS:
         body = f'<mstts:express-as style="cheerful" styledegree="2">{text}</mstts:express-as>'
-    elif key == "para":
-        body = f'<prosody rate="-12%">{text}</prosody>'
+    elif key.startswith("o"):
+        body = f'<prosody rate="-15%">{text}</prosody>'
     else:
         body = f'<prosody rate="-8%">{text}</prosody>'
     return (
