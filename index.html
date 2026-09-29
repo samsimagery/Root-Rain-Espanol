@@ -1,0 +1,823 @@
+<title>Root Rain Español</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Readex+Pro:wght@400;500;700&display=swap">
+<style>
+  /* Layout: one centred column. The board is a tiled stage with the eight word tiles scattered over a jittered grid.
+     Tile colour carries grammar: blue = el (masculine), rose = la (feminine), gold = verbs and adjectives. */
+  :root {
+    color-scheme: dark;
+    --ink: #0F1A33; --ink-2: #16244A; --ink-3: #1F315F; --line: #2C4278;
+    --gold: #F2B544; --azul: #8DB4FF; --rosa: #F49AB4; --verde: #5ED3A2; --rojo: #F0715F;
+    --text: #F4EFE4; --muted: #A6B2D0; --ghost: #7584B0; --dim: #4A5A8C;
+    --display: "Alfa Slab One", "Rockwell", "Georgia", serif;
+    --ui: "Readex Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  html, body { background: var(--ink); color: var(--text); }
+  body { font-family: var(--ui); padding-inline: 16px; padding-block: 20px 40px; }
+  .wrap { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  h1 { margin: 0; font-size: 1.6rem; font-weight: 700; display: flex; align-items: baseline; gap: 10px; }
+  h1 .es { font-family: var(--display); font-weight: 400; color: var(--gold); font-size: 1.7rem; line-height: 1; letter-spacing: 0.01em; }
+  header .topic { color: var(--muted); font-size: 0.9rem; }
+  header .topic b { color: var(--text); font-weight: 500; }
+  [hidden] { display: none !important; }
+
+  .steps { display: flex; gap: 6px; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--dim); flex-wrap: wrap; }
+  .steps span { padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; }
+  .steps span.on { color: var(--ink); background: var(--gold); border-color: var(--gold); }
+  .steps span.done { color: var(--verde); border-color: var(--verde); }
+
+  button { font: inherit; color: var(--text); background: var(--ink-2); border: 1px solid var(--line); border-radius: 8px; padding: 8px 12px; font-size: 0.9rem; cursor: pointer; }
+  button:hover { border-color: var(--verde); }
+  button:focus-visible, textarea:focus-visible, input:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .primary { background: var(--gold); color: var(--ink); border-color: var(--gold); font-weight: 700; }
+  .primary:hover { border-color: var(--text); }
+  .toggle[aria-pressed="true"] { border-color: var(--verde); color: var(--verde); }
+  kbd { font-family: var(--ui); background: var(--ink-3); border: 1px solid var(--line); border-radius: 5px; padding: 1px 6px; font-size: 0.78rem; color: var(--text); }
+  .note { color: var(--muted); font-size: 0.8rem; line-height: 1.5; margin: 0; }
+
+  /* intro */
+  .deck { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .vocab { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; column-gap: 10px; align-items: center; text-align: left; padding: 12px; border-radius: 12px; background: var(--ink-2); border: 1px solid var(--line); border-top: 3px solid var(--c); }
+  .vocab .spk { grid-row: 1 / span 2; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: var(--c); border: 1px solid var(--line); }
+  .vocab .spk svg { width: 15px; height: 15px; }
+  .vocab.playing .spk { background: var(--c); color: var(--ink); border-color: var(--c); }
+  .vocab .w { font-size: 1.15rem; font-weight: 700; color: var(--c); line-height: 1.2; min-width: 0; overflow-wrap: anywhere; }
+  .vocab .w small { font-size: 0.72em; font-weight: 500; color: var(--muted); }
+  .vocab .en { font-size: 0.8rem; color: var(--muted); min-width: 0; }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; margin: 0; font-size: 0.78rem; color: var(--muted); }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend i { width: 10px; height: 10px; border-radius: 2px; display: block; }
+  .intro-go { display: grid; grid-template-columns: 1fr auto; gap: 16px 24px; align-items: center; background: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; padding: 18px 20px; }
+  .intro-go p { margin: 0; color: var(--muted); line-height: 1.6; max-width: 60ch; }
+  .intro-go p b { color: var(--text); font-weight: 500; }
+  .intro-go .go { display: flex; flex-direction: column; gap: 10px; align-items: stretch; }
+  .intro-go .primary { font-size: 1.05rem; padding: 12px 28px; }
+
+  /* the board */
+  .stage { position: relative; width: 100%; height: min(60vh, 540px); min-height: 260px; border-radius: 14px; overflow: hidden; border: 1px solid var(--line); transition: height 0.25s;
+    background-color: var(--ink-2);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='72' viewBox='0 0 72 72'%3E%3Cg fill='none' stroke='%23213463' stroke-width='1'%3E%3Crect x='0.5' y='0.5' width='71' height='71'/%3E%3Cpath d='M36 12c7 8 7 16 0 24c-7-8-7-16 0-24zM36 60c7-8 7-16 0-24c-7 8-7 16 0 24zM12 36c8-7 16-7 24 0c-8 7-16 7-24 0zM60 36c-8-7-16-7-24 0c8 7 16 7 24 0z'/%3E%3Ccircle cx='36' cy='36' r='4'/%3E%3Cpath d='M0 10A10 10 0 0 0 10 0M62 0a10 10 0 0 0 10 10M72 62a10 10 0 0 0-10 10M10 72A10 10 0 0 0 0 62'/%3E%3C/g%3E%3C/svg%3E"); }
+  .cards { position: absolute; inset: 0; --fs: 30px; }
+  #fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+  .wcard { position: absolute; left: 0; top: 0; font-size: var(--fs); transition: left 0.4s, top 0.4s, opacity 0.2s; animation: land 0.45s cubic-bezier(.2,1.5,.4,1) backwards; }
+  .cards.still .wcard { transition: none; }
+  .wcard .bob { display: flex; flex-direction: column; align-items: center; gap: 0.1em; padding: 0.3em 0.6em 0.36em; border-radius: 0.4em; background: rgba(15,26,51,0.86); border: 1.5px solid var(--c); animation: bob 4s ease-in-out infinite; transition: background 0.15s, border-color 0.15s; }
+  .wcard .es { font-weight: 700; color: var(--c); line-height: 1.15; white-space: nowrap; }
+  .wcard .art { font-size: 0.55em; font-weight: 500; color: var(--muted); margin-right: 0.3em; }
+  .wcard .wd i { font-style: normal; transition: color 0.1s; }
+  .wcard .wd i.on { color: var(--verde); }
+  .wcard .en { font-size: max(11px, 0.4em); color: var(--muted); white-space: nowrap; }
+  .wcard.match .bob { border-color: var(--verde); background: rgba(34,70,74,0.92); box-shadow: 0 0 0 3px rgba(94,211,162,0.18); }
+  .wcard.dim { opacity: 0.4; }
+  .wcard.burst { z-index: 1; pointer-events: none; animation: fly 0.8s cubic-bezier(.5,-0.35,.85,.45) forwards; }
+  .wcard.burst .bob { border-color: var(--verde); animation: none; }
+  .wcard.burst .wd i { color: var(--verde); }
+  @keyframes land { from { transform: scale(0.3); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes bob { 0%, 100% { transform: translateY(-3px) rotate(var(--tilt)); } 50% { transform: translateY(3px) rotate(calc(var(--tilt) * -1)); } }
+  @keyframes fly { 0% { transform: scale(1); } 16% { transform: scale(1.25); opacity: 1; } 100% { transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(0.6); opacity: 0.3; } }
+  .hud { position: absolute; inset: 0 0 auto 0; z-index: 3; display: flex; justify-content: space-between; align-items: flex-start; padding: 10px 14px; pointer-events: none; gap: 12px; }
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat.r { align-items: flex-end; text-align: right; }
+  .stat span { font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .stat b { font-size: 1.15rem; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .stat small { font-size: 0.7rem; color: var(--dim); }
+  .typed { position: absolute; inset: auto 0 0 0; z-index: 3; display: flex; align-items: center; justify-content: center; padding: 6px 14px; background: rgba(15,26,51,0.82); border-top: 1px solid var(--line); min-height: 48px; box-sizing: border-box; }
+  .typed .out { font-size: 1.5rem; font-weight: 700; letter-spacing: 0.04em; color: var(--verde); min-width: 2ch; text-align: center; }
+  .typed .out:empty::before { content: "type any word on the board"; font-size: 0.82rem; font-weight: 400; letter-spacing: 0; color: var(--muted); }
+  .phone .typed .out:empty::before { content: "tap the box below to type"; }
+  .typed .out.bad { color: var(--rojo); animation: shake 0.2s; }
+  @keyframes shake { 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } }
+
+  /* paragraph */
+  .para-card { background: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; display: flex; flex-direction: column; gap: 14px; }
+  .para-card h2 { margin: 0; font-size: 1.1rem; }
+  .para-card .sub { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+  .para-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .para { font-size: clamp(1.25rem, 3.6vw, 1.65rem); line-height: 1.9; color: var(--ghost); }
+  .para .c { transition: color 0.12s; border-radius: 3px; }
+  .para .c.ok { color: var(--text); }
+  .para .c.now { background: rgba(242,181,68,0.22); color: var(--gold); box-shadow: 0 2px 0 var(--gold); }
+  .para .c.bad { background: rgba(240,113,95,0.35); color: var(--rojo); }
+  .listen { display: inline-flex; align-items: center; gap: 8px; color: var(--verde); border-radius: 999px; padding: 7px 14px; }
+  .listen svg { width: 16px; height: 16px; display: block; }
+  .listen.playing { background: var(--verde); color: var(--ink); border-color: var(--verde); }
+  .clock { font-variant-numeric: tabular-nums; font-size: 1.05rem; font-weight: 500; }
+  .clock small { color: var(--dim); font-size: 0.72rem; font-weight: 400; margin-left: 6px; }
+  .para-en { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.6; border-top: 1px solid var(--line); padding-top: 12px; }
+  .bar { height: 6px; border-radius: 3px; background: var(--ink); border: 1px solid var(--line); overflow: hidden; }
+  .bar i { display: block; height: 100%; width: 0; background: var(--verde); transition: width 0.2s; }
+  .para-foot { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 0.85rem; color: var(--muted); }
+  label.tog { display: flex; gap: 8px; align-items: center; cursor: pointer; }
+  input[type="checkbox"] { accent-color: var(--verde); width: 16px; height: 16px; }
+
+  /* your sentences */
+  .write { display: grid; grid-template-columns: 1.35fr 1fr; gap: 14px; align-items: start; }
+  .write-main { background: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+  .write-main h2 { margin: 0; font-size: 1.15rem; }
+  .write-main p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+  textarea { width: 100%; box-sizing: border-box; min-height: 200px; resize: vertical; font-family: var(--ui); font-size: 1.15rem; line-height: 1.7; color: var(--text); background: var(--ink); border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; }
+  textarea::placeholder { color: var(--dim); }
+  .write-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; justify-content: space-between; }
+  .pts { display: flex; align-items: baseline; gap: 6px; color: var(--muted); font-size: 0.85rem; }
+  .pts b { font-family: var(--display); font-weight: 400; font-size: 1.9rem; color: var(--gold); font-variant-numeric: tabular-nums; line-height: 1; display: inline-block; }
+  .pts b.bump { animation: bump 0.4s cubic-bezier(.2,1.8,.4,1); }
+  @keyframes bump { 40% { transform: scale(1.4); color: var(--verde); } }
+  .wordlist { background: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .wordlist h3 { margin: 0; font-size: 0.95rem; display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .wordlist h3 small { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+  .wordlist ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+  .wordlist li button { width: 100%; display: grid; grid-template-columns: 18px auto 1fr auto; align-items: baseline; gap: 10px; background: none; border: none; border-bottom: 1px solid rgba(44,66,120,0.6); border-radius: 0; padding: 7px 2px; text-align: left; }
+  .wordlist li button:hover { background: var(--ink-3); }
+  .wordlist .tick { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid var(--dim); align-self: center; box-sizing: border-box; }
+  .wordlist .w { font-weight: 700; color: var(--c); }
+  .wordlist .w small { font-weight: 500; color: var(--muted); }
+  .wordlist .en { font-size: 0.8rem; color: var(--muted); min-width: 0; }
+  .wordlist .pt { font-size: 0.78rem; color: var(--dim); font-variant-numeric: tabular-nums; }
+  .wordlist li.used .tick { background: var(--verde); border-color: var(--verde); }
+  .wordlist li.used .pt { color: var(--verde); font-weight: 700; }
+  .wl-note { font-size: 0.78rem; color: var(--muted); margin: 0; line-height: 1.5; }
+
+  /* results */
+  .results { background: var(--ink-2); border: 1px solid var(--line); border-radius: 14px; padding: 22px 20px; display: flex; flex-direction: column; gap: 16px; }
+  .results h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.8rem; color: var(--gold); text-wrap: balance; }
+  .tally { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  .tally div { background: var(--ink); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .tally span { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .tally b { font-size: 1.7rem; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .tally small { font-size: 0.8rem; color: var(--muted); }
+  .preview { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; font-family: var(--ui); font-size: 0.88rem; line-height: 1.6; color: var(--text); background: var(--ink); border: 1px dashed var(--line); border-radius: 10px; padding: 12px 14px; }
+  .actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .copied { font-size: 0.85rem; color: var(--verde); }
+
+  /* phones type through this field so their own keyboard opens */
+  .phone-type { position: relative; }
+  .phone-type input { width: 100%; box-sizing: border-box; height: 52px; border-radius: 10px; border: 1.5px dashed var(--verde); background: var(--ink-2); color: transparent; caret-color: transparent; font-size: 16px; padding: 0 14px; }
+  .phone-type input:focus { border-style: solid; outline: none; box-shadow: 0 0 0 3px rgba(94,211,162,0.25); }
+  .phone-type .lbl { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; pointer-events: none; color: var(--verde); font-size: 0.92rem; }
+  .phone-type .lbl .on { display: none; }
+  .phone-type:focus-within .lbl .off { display: none; }
+  .phone-type:focus-within .lbl .on { display: inline; }
+
+  /* the cheer that sweeps across between screens */
+  .flash { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; overflow: hidden; background: radial-gradient(circle at 50% 50%, #26366C, #0F1A33 70%); cursor: pointer; }
+  .flash canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .flash .band { position: absolute; left: 0; top: -10%; height: 120%; width: 22vw; background: linear-gradient(90deg, transparent, rgba(244,239,228,0.16), transparent); transform: translateX(-40vw) skewX(-20deg); }
+  .flash .inner { position: relative; display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; padding: 16px; }
+  .flash .cheer { font-family: var(--display); font-weight: 400; text-transform: uppercase; color: var(--gold); font-size: min(7.5rem, calc(86vw / (var(--len, 11) * 0.74))); line-height: 1.05; white-space: nowrap; text-shadow: 0.04em 0.05em 0 #B8432F, 0 0 60px rgba(242,181,68,0.4); }
+  .flash .sub { color: var(--text); font-size: 1.1rem; }
+  .flash .hint { color: var(--muted); font-size: 0.85rem; }
+  .flash.go .band { animation: band 0.7s ease-out both; }
+  .flash.go .cheer { animation: sweep 2.4s both; }
+  .flash.go .sub { animation: subfade 2.4s both; }
+  .flash.go .hint { animation: subfade 2.4s both; }
+  @keyframes band { to { transform: translateX(130vw) skewX(-20deg); } }
+  @keyframes sweep {
+    0% { transform: translateX(110vw) skewX(-18deg); animation-timing-function: cubic-bezier(.2,.8,.3,1); }
+    18% { transform: translateX(-3vw) skewX(8deg); animation-timing-function: ease-out; }
+    26% { transform: translateX(0) skewX(0) scale(1.06); animation-timing-function: ease-in-out; }
+    34% { transform: translateX(0) scale(1); }
+    80% { transform: translateX(0) scale(1); animation-timing-function: cubic-bezier(.6,0,.9,.4); }
+    100% { transform: translateX(-120vw) skewX(18deg); }
+  }
+  @keyframes subfade { 0%, 20% { opacity: 0; transform: translateY(8px); } 30%, 82% { opacity: 1; transform: none; } 100% { opacity: 0; } }
+
+  @media (max-width: 720px) {
+    .deck { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .intro-go, .write { grid-template-columns: 1fr; }
+    .tally { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .wcard, .wcard .bob, .flash.go .band, .typed .out.bad { animation: none; }
+    .wcard.burst { animation: none; opacity: 0; transition: opacity 0.3s; }
+    .flash.go .cheer, .flash.go .sub, .flash.go .hint { animation: none; }
+    .stage, .para .c, .wcard { transition: none; }
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Root Rain <span class="es">Español</span></h1>
+    <span class="topic">Topic: <b>el mercado</b> · 8 words</span>
+  </header>
+
+  <div class="steps" id="steps">
+    <span data-s="board">1 · Words</span><span data-s="para">2 · Paragraph</span><span data-s="write">3 · Your sentences</span>
+  </div>
+
+  <!-- intro -->
+  <section id="introScr">
+    <div style="display:flex;flex-direction:column;gap:12px">
+      <div class="deck" id="deck"></div>
+      <p class="legend">
+        <span><i style="background:var(--azul)"></i>el · masculine</span>
+        <span><i style="background:var(--rosa)"></i>la · feminine</span>
+        <span><i style="background:var(--gold)"></i>verbs and adjectives</span>
+      </p>
+      <div class="intro-go">
+        <p>All eight words sit on the board at once. <b>Type a word (without its el or la) and it bursts off the screen.</b> Clear the board as fast as you can, then type a short paragraph, then write sentences of your own for points. Accents are optional: <kbd>n</kbd> works for ñ and <kbd>a</kbd> for á. Tap a word above to hear it.</p>
+        <div class="go">
+          <button class="primary" id="startBtn" type="button">Start</button>
+          <button class="toggle" id="voiceBtn" type="button" aria-pressed="true">Voice on</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 1 · words -->
+  <section id="boardScr" hidden>
+    <div class="stage" id="stage">
+      <div class="cards" id="cards"></div>
+      <canvas id="fx"></canvas>
+      <div class="hud">
+        <div class="stat"><span>Words left</span><b id="leftLbl">8</b></div>
+        <div class="stat r"><span>Time</span><b id="boardTime">0.0 s</b><small id="boardHint">starts when you type</small></div>
+      </div>
+      <div class="typed"><div class="out" id="out"></div></div>
+    </div>
+  </section>
+
+  <!-- 2 · paragraph -->
+  <section id="paraScr" hidden>
+    <div class="para-card">
+      <div class="para-top">
+        <h2>Type the paragraph</h2>
+        <div class="clock" id="paraTime">0.0 s<small>starts when you type</small></div>
+      </div>
+      <p class="sub">Type each letter over the grey text. Punctuation fills in by itself, capitals don't matter, and accents are optional.</p>
+      <div><button type="button" class="listen" id="listenBtn"><span class="ic"></span> Listen to the paragraph</button></div>
+      <div class="para" id="para" lang="es"></div>
+      <div class="bar"><i id="paraBar"></i></div>
+      <div class="para-foot">
+        <label class="tog"><input type="checkbox" id="showEn"> Show the English</label>
+        <span id="paraCount"></span>
+      </div>
+      <p class="para-en" id="paraEn" hidden></p>
+    </div>
+  </section>
+
+  <!-- shared typing field for phones -->
+  <div class="phone-type" id="phoneBox" hidden>
+    <input id="phoneIn" type="text" lang="es" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" enterkeyhint="done" aria-label="Type here with your phone keyboard">
+    <div class="lbl"><span class="off">Tap here to open your keyboard</span><span class="on">Keyboard open · type away</span></div>
+  </div>
+  <p class="note" id="kbNote" hidden></p>
+
+  <!-- 3 · your sentences -->
+  <section id="writeScr" hidden>
+    <div class="write">
+      <div class="write-main">
+        <h2>Now write your own</h2>
+        <p>Write a few sentences with today's words. Every word from the list you use earns 5 points, and other forms count too (frutas, compramos, barata).</p>
+        <textarea id="mine" lang="es" placeholder="Escribe tus oraciones aquí…" aria-label="Your sentences"></textarea>
+        <div class="write-actions">
+          <div class="pts">Points <b id="ptsLbl">0</b> of 40</div>
+          <button class="primary" id="finishBtn" type="button">Finish and see results</button>
+        </div>
+      </div>
+      <aside class="wordlist" id="wordlist"></aside>
+    </div>
+  </section>
+
+  <!-- results -->
+  <section id="resultsScr" hidden>
+    <div class="results">
+      <h2>¡Terminado!</h2>
+      <div class="tally">
+        <div><span>Words off the screen</span><b id="rWords"></b></div>
+        <div><span>Paragraph typed</span><b id="rPara"></b></div>
+        <div><span>Sentence points</span><b id="rPts"></b><small id="rPtsSub"></small></div>
+      </div>
+      <pre class="preview" id="preview"></pre>
+      <div class="actions">
+        <button class="primary" id="copyBtn" type="button">Copy results</button>
+        <button id="againBtn" type="button">Play again</button>
+        <span class="copied" id="copied" aria-live="polite"></span>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="flash" id="flash" hidden>
+  <canvas id="confetti"></canvas>
+  <div class="band"></div>
+  <div class="inner">
+    <div class="cheer" id="cheerWord" lang="es"></div>
+    <div class="sub" id="cheerSub"></div>
+    <div class="hint">tap to continue</div>
+  </div>
+</div>
+
+<script>
+(() => {
+  const SHARE_URL = "https://claude.ai/artifact/XRasiCGNX9i6y4o8dG8Myy";
+
+  // ---------- today's content ----------
+  // m: which forms count as "using" the word in your own sentences (matched without accents, lower case)
+  const WORDS = [
+    { art: "el", es: "mercado", en: "market",           m: "^mercados?$" },
+    { art: "la", es: "mañana",  en: "morning; tomorrow", m: "^mananas?$" },
+    { art: "",   es: "comprar", en: "to buy",           m: "^compr(a[a-z]*|o|e|es|en|emos)$" },
+    { art: "la", es: "fruta",   en: "fruit",            m: "^frutas?$" },
+    { art: "el", es: "plátano", en: "banana",           m: "^platanos?$" },
+    { art: "",   es: "barato",  en: "cheap",            m: "^barat[oa]s?$" },
+    { art: "el", es: "dinero",  en: "money",            m: "^dineros?$" },
+    { art: "la", es: "bolsa",   en: "bag",              m: "^bolsas?$" }
+  ];
+  const PARAGRAPH = {
+    es: "Cada sábado por la mañana voy al mercado con mi abuela. Ella siempre quiere comprar fruta fresca, como plátanos y mangos. Todo es barato, pero nunca llevamos mucho dinero. Al final, ¡mi bolsa pesa más que yo!",
+    en: "Every Saturday morning I go to the market with my grandmother. She always wants to buy fresh fruit, like bananas and mangoes. Everything is cheap, but we never bring much money. In the end, my bag weighs more than I do!",
+    clip: "audio/para.mp3"
+  };
+  const CHEERS = [
+    { text: "¡Magnífico!", clip: "audio/magnifico.mp3" },
+    { text: "¡Guau!", clip: "audio/guau.mp3" },
+    { text: "¡Bravo!", clip: "audio/bravo.mp3" }
+  ];
+  const PTS_EACH = 5, MAX_PTS = WORDS.length * PTS_EACH;
+
+  const $ = id => document.getElementById(id);
+  const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const plain = s => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const isLetter = ch => /\p{L}/u.test(ch);
+  const colorOf = w => w.art === "el" ? "var(--azul)" : w.art === "la" ? "var(--rosa)" : "var(--gold)";
+  const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  WORDS.forEach((w, i) => { w.es = w.es.normalize("NFC"); w.plain = plain(w.es); w.re = new RegExp(w.m); w.clip = `audio/w${String(i).padStart(2, "0")}.mp3`; });
+  function fmt(ms) {
+    const s = ms / 1000;
+    if (s < 60) return `${s.toFixed(1)} s`;
+    const m = Math.floor(s / 60);
+    return `${m} min ${(s - m * 60).toFixed(1).padStart(4, "0")} s`;
+  }
+  let stage = "intro";
+
+  // ---------- voice: Azure neural voice (Jorge, es-MX), recorded once and shipped as clips ----------
+  const clipCache = {};
+  const clip = src => { if (!clipCache[src]) { const a = new Audio(src); a.preload = "auto"; clipCache[src] = a; } return clipCache[src]; };
+  let cur = null, curBtn = null, voiceOn = true;
+  try { voiceOn = localStorage.getItem("rre-voice") !== "off"; } catch (e) {}
+  function stopVoice() {
+    if (cur) cur.pause();
+    if (curBtn) curBtn.classList.remove("playing");
+    cur = null; curBtn = null;
+  }
+  function playVoice(src, btn) {
+    stopVoice();
+    const a = clip(src); cur = a;
+    try { a.currentTime = 0; } catch (e) {}
+    if (btn) { curBtn = btn; btn.classList.add("playing"); }
+    a.onended = a.onerror = () => { if (cur === a) stopVoice(); };
+    const p = a.play(); if (p && p.catch) p.catch(() => { if (cur === a) stopVoice(); });
+  }
+  const say = src => { if (voiceOn) playVoice(src); };
+  function paintVoiceBtn() { const b = $("voiceBtn"); b.setAttribute("aria-pressed", voiceOn); b.textContent = voiceOn ? "Voice on" : "Voice off"; }
+  $("voiceBtn").addEventListener("click", () => {
+    voiceOn = !voiceOn; paintVoiceBtn(); if (!voiceOn) stopVoice();
+    try { localStorage.setItem("rre-voice", voiceOn ? "on" : "off"); } catch (e) {}
+  });
+  paintVoiceBtn();
+
+  // ---------- sound effects ----------
+  let actx = null;
+  const ac = () => { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; };
+  function tone(f1, f2, dur, type, vol, delay) {
+    try {
+      const a = ac(), t = a.currentTime + (delay || 0), o = a.createOscillator(), g = a.createGain();
+      o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + 0.02);
+    } catch (e) {}
+  }
+  function pop() {
+    try {
+      const a = ac(), len = Math.floor(a.sampleRate * 0.14), buf = a.createBuffer(1, len, a.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+      const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+      s.buffer = buf; f.type = "bandpass"; f.frequency.value = 1400; f.Q.value = 0.7; g.gain.value = 0.35;
+      s.connect(f).connect(g).connect(a.destination); s.start();
+    } catch (e) {}
+  }
+  const sfx = {
+    key: () => tone(900, 700, 0.05, "triangle", 0.05),
+    burst: () => { pop(); [660, 880, 1175].forEach((f, i) => tone(f, f * 1.02, 0.14, "triangle", 0.07, 0.04 + i * 0.055)); },
+    wrong: () => tone(180, 120, 0.14, "square", 0.04),
+    fanfare: () => [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, f, i > 3 ? 0.4 : 0.16, "triangle", 0.1, i * 0.11))
+  };
+
+  // ---------- intro deck ----------
+  const SPEAKER = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 5 6 9H3v6h3l5 4z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M18.5 5.5a9 9 0 0 1 0 13"/></svg>';
+  $("deck").innerHTML = WORDS.map((w, i) => `<button type="button" class="vocab" data-i="${i}" style="--c:${colorOf(w)}" aria-label="Hear ${w.art ? w.art + " " : ""}${w.es}, ${w.en}">
+      <span class="spk">${SPEAKER}</span>
+      <span class="w">${w.art ? `<small>${w.art}</small> ` : ""}${w.es}</span>
+      <span class="en">${w.en}</span></button>`).join("");
+  $("deck").addEventListener("click", e => { const b = e.target.closest("[data-i]"); if (b) playVoice(WORDS[+b.dataset.i].clip, b); });
+
+  // ---------- stopwatches (pause while the tab is hidden) ----------
+  const mkWatch = () => ({ acc: 0, t0: 0, run: false, started: false, stopped: false });
+  const SW = { board: mkWatch(), para: mkWatch() };
+  function startWatch(w) { if (w.started) return; w.started = true; w.run = true; w.t0 = performance.now(); }
+  function pauseWatch(w) { if (!w.run) return; w.acc += performance.now() - w.t0; w.run = false; }
+  function resumeWatch(w) { if (!w.started || w.stopped || w.run) return; w.run = true; w.t0 = performance.now(); }
+  function stopWatch(w) { pauseWatch(w); w.stopped = true; }
+  const readWatch = w => w.acc + (w.run ? performance.now() - w.t0 : 0);
+  document.addEventListener("visibilitychange", () => {
+    const w = stage === "board" ? SW.board : stage === "para" ? SW.para : null;
+    if (w) document.hidden ? pauseWatch(w) : resumeWatch(w);
+  });
+
+  // ---------- phones ----------
+  const touchMQ = [matchMedia("(pointer: coarse)"), matchMedia("(hover: none)")];
+  const shortSide = () => Math.min(screen.width, screen.height);
+  const isPhone = () => shortSide() < 820 && ((touchMQ[0].matches && touchMQ[1].matches) || (navigator.maxTouchPoints > 0 && shortSide() < 600));
+  let phone = isPhone();
+  const stageEl = $("stage"), phoneIn = $("phoneIn"), MARK = "​";
+  function showInputs() {
+    const typing = stage === "board" || stage === "para";
+    $("phoneBox").hidden = !(typing && phone);
+    $("kbNote").hidden = !(typing && !phone);
+    $("kbNote").innerHTML = stage === "board"
+      ? "Type with your keyboard, and skip the el or la. <kbd>Backspace</kbd> deletes a letter and <kbd>Esc</kbd> clears the word you're typing. The clock pauses if you switch tabs."
+      : "Type with your keyboard. A wrong letter doesn't count, so just type the right one. The clock pauses if you switch tabs.";
+    stageEl.classList.toggle("phone", phone);
+    fitStage();
+  }
+  const resetPhoneIn = () => { phoneIn.value = MARK; try { phoneIn.setSelectionRange(1, 1); } catch (e) {} };
+  resetPhoneIn();
+  function focusPhone() { if (phone && (stage === "board" || stage === "para")) { resetPhoneIn(); phoneIn.focus({ preventScroll: true }); } }
+  phoneIn.addEventListener("input", e => {
+    const v = phoneIn.value;
+    if (e.inputType === "deleteContentBackward" || !v.startsWith(MARK)) { resetPhoneIn(); backspace(); return; }
+    const added = v.slice(MARK.length); resetPhoneIn();
+    typeStr(added);
+  });
+  phoneIn.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); if (stage === "board") boardChar(" "); else phoneIn.blur(); } });
+  // with the phone keyboard open, shrink the board so it and the typing field both fit above the keyboard
+  function fitStage() {
+    const vv = window.visualViewport;
+    if (!phone || !vv || stage !== "board" || document.activeElement !== phoneIn) { stageEl.style.height = ""; return; }
+    const room = vv.height - $("phoneBox").offsetHeight - 24;
+    stageEl.style.height = Math.max(260, Math.min(room, 540)) + "px";
+    window.scrollTo({ top: stageEl.getBoundingClientRect().top + window.scrollY - 8 });
+  }
+  phoneIn.addEventListener("focus", () => setTimeout(fitStage, 350));
+  phoneIn.addEventListener("blur", () => setTimeout(fitStage, 350));
+  if (window.visualViewport) visualViewport.addEventListener("resize", fitStage);
+  const reLayout = () => { const p = isPhone(); if (p !== phone) { phone = p; showInputs(); } };
+  touchMQ.forEach(m => m.addEventListener ? m.addEventListener("change", reLayout) : m.addListener(reLayout));
+  window.addEventListener("resize", reLayout);
+
+  // ---------- screens ----------
+  function setStage(s) {
+    stage = s;
+    ["intro", "board", "para", "write", "results"].forEach(k => $(k + "Scr").hidden = k !== s);
+    const order = ["board", "para", "write"], cur = s === "results" ? order.length : order.indexOf(s);
+    document.querySelectorAll("#steps span").forEach(sp => {
+      const i = order.indexOf(sp.dataset.s);
+      sp.className = i === cur ? "on" : i < cur ? "done" : "";
+    });
+    showInputs();
+  }
+
+  // ---------- the cheer between screens ----------
+  let cheerOrder = shuffle([0, 1, 2]), cheerN = 0, cheerDone = null, craf = 0;
+  function cheer(sub, then) {
+    const c = CHEERS[cheerOrder[cheerN++ % CHEERS.length]], f = $("flash");
+    $("cheerWord").textContent = c.text; $("cheerWord").style.setProperty("--len", [...c.text].length); $("cheerSub").textContent = sub;
+    f.hidden = false; f.classList.remove("go"); void f.offsetWidth; f.classList.add("go");
+    sfx.fanfare(); say(c.clip); confetti();
+    let done = false;
+    const timer = setTimeout(() => cheerDone && cheerDone(), reduced ? 1900 : 2500);
+    cheerDone = () => { if (done) return; done = true; cheerDone = null; clearTimeout(timer); f.hidden = true; cancelAnimationFrame(craf); then(); };
+  }
+  $("flash").addEventListener("click", () => cheerDone && cheerDone());
+  function confetti() {
+    const c = $("confetti"), x = c.getContext("2d");
+    c.width = innerWidth; c.height = innerHeight;
+    if (reduced) return;
+    const cols = ["#F2B544", "#8DB4FF", "#F49AB4", "#5ED3A2", "#F4EFE4"];
+    const ps = Array.from({ length: 150 }, () => ({ x: innerWidth / 2, y: innerHeight / 2, vx: (Math.random() - 0.5) * 950, vy: -Math.random() * 820 - 150, r: Math.random() * Math.PI, c: cols[Math.random() * cols.length | 0], s: 4 + Math.random() * 6 }));
+    let last = performance.now();
+    cancelAnimationFrame(craf);
+    const tick = now => {
+      const dt = Math.min(0.04, (now - last) / 1000); last = now;
+      x.clearRect(0, 0, c.width, c.height);
+      ps.forEach(p => { p.vy += 900 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.r += 6 * dt;
+        x.save(); x.translate(p.x, p.y); x.rotate(p.r); x.fillStyle = p.c; x.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); x.restore(); });
+      craf = requestAnimationFrame(tick);
+    };
+    craf = requestAnimationFrame(tick);
+  }
+
+  // ================= 1 · the board =================
+  const cardsEl = $("cards"), fx = $("fx"), fctx = fx.getContext("2d"), out = $("out");
+  let items = [], buffer = "", cols = 0, parts = [], fxW = 0, fxH = 0;
+  const remaining = () => items.filter(it => !it.done);
+  function startBoard() {
+    Object.assign(SW.board, mkWatch());
+    buffer = ""; parts = []; cols = 0;
+    items = shuffle(WORDS.slice()).map(w => ({ w, done: false, jx: Math.random(), jy: Math.random(), slot: 0, el: null, chars: [] }));
+    cardsEl.innerHTML = ""; cardsEl.classList.add("still"); $("boardHint").hidden = false;
+    items.forEach((it, k) => {
+      const el = document.createElement("div");
+      el.className = "wcard";
+      el.style.setProperty("--c", colorOf(it.w));
+      el.style.setProperty("--tilt", (Math.random() * 7 - 3.5).toFixed(2) + "deg");
+      el.style.animationDelay = (k * 0.06).toFixed(2) + "s";
+      el.innerHTML = `<div class="bob" style="animation-duration:${(3 + Math.random() * 2).toFixed(2)}s;animation-delay:-${(Math.random() * 4).toFixed(2)}s">
+        <div class="es">${it.w.art ? `<span class="art">${it.w.art}</span>` : ""}<span class="wd">${[...it.w.es].map(c => `<i>${c}</i>`).join("")}</span></div>
+        <div class="en">${it.w.en}</div></div>`;
+      cardsEl.appendChild(el); it.el = el; it.chars = [...el.querySelectorAll(".wd i")];
+    });
+    setStage("board"); renderBuffer(); renderLeft(); paintClock();
+    requestAnimationFrame(() => { layoutCards(); requestAnimationFrame(() => cardsEl.classList.remove("still")); focusPhone(); runLoop(); });
+  }
+  // spread the tiles over a grid with a little jitter, sized so the widest tile fits its cell
+  function layoutCards() {
+    const W = stageEl.clientWidth, H = stageEl.clientHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    fxW = W; fxH = H; fx.width = W * dpr; fx.height = H * dpr; fctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const live = remaining(); if (!live.length) return;
+    const top = 66, bottom = 56, side = 8, aw = W - side * 2, ah = Math.max(80, H - top - bottom);
+    let fs = 30; cardsEl.style.setProperty("--fs", fs + "px");
+    const measure = () => { let mw = 1, mh = 1; live.forEach(it => { mw = Math.max(mw, it.el.offsetWidth); mh = Math.max(mh, it.el.offsetHeight); }); return [mw, mh]; };
+    const fit = (c, mw, mh) => Math.min(1, (aw / c - 10) / mw, (ah / Math.ceil(items.length / c) - 6) / mh);
+    let [mw, mh] = measure(), c = 3;
+    [4, 2].forEach(n => { if (fit(n, mw, mh) > fit(c, mw, mh) + 0.01) c = n; });
+    const r = Math.ceil(items.length / c), cw = aw / c, ch = ah / r;
+    if (c !== cols) { cols = c; const slots = shuffle([...Array(c * r).keys()]); items.forEach((it, k) => { it.slot = slots[k]; }); }
+    for (let pass = 0; pass < 2; pass++) {
+      const k = fit(c, mw, mh);
+      if (k >= 1) break;
+      fs = Math.max(13, fs * k); cardsEl.style.setProperty("--fs", fs.toFixed(1) + "px");
+      [mw, mh] = measure();
+    }
+    live.forEach(it => {
+      const ew = it.el.offsetWidth, eh = it.el.offsetHeight, col = it.slot % c, row = Math.floor(it.slot / c);
+      it.el.style.left = (side + col * cw + it.jx * Math.max(0, cw - ew)).toFixed(1) + "px";
+      it.el.style.top = (top + row * ch + it.jy * Math.max(0, ch - eh)).toFixed(1) + "px";
+    });
+  }
+  new ResizeObserver(() => { if (stage === "board") layoutCards(); }).observe(stageEl);
+  function renderLeft() { $("leftLbl").textContent = remaining().length; }
+  function renderBuffer(bad) {
+    out.textContent = buffer;
+    out.classList.remove("bad");
+    if (bad) { void out.offsetWidth; out.classList.add("bad"); }
+  }
+  function paintCards() {
+    for (const it of items) {
+      if (it.done) continue;
+      const typed = buffer && it.w.plain.startsWith(buffer) ? buffer.length : 0;
+      it.chars.forEach((c, i) => c.classList.toggle("on", i < typed));
+      it.el.classList.toggle("match", typed > 0);
+      it.el.classList.toggle("dim", !!buffer && typed === 0);
+    }
+  }
+  function boardChar(c) {
+    const live = remaining(); if (!live.length) return;
+    if (c === " " || c === "\n") { const ex = live.find(it => it.w.plain === buffer); if (ex) complete(ex); return; }
+    const p = plain(c);
+    if (!/^[a-z]$/.test(p)) return;
+    startWatch(SW.board); $("boardHint").hidden = true;
+    const cand = buffer + p;
+    if (!live.some(it => it.w.plain.startsWith(cand))) {
+      sfx.wrong(); renderBuffer(true);
+      const bad = document.createElement("span"); bad.textContent = p; out.appendChild(bad);
+      setTimeout(() => renderBuffer(), 220);
+      return;
+    }
+    buffer = cand; sfx.key();
+    const ex = live.find(it => it.w.plain === buffer);
+    // finish now unless a longer word still starts with what was typed (then Space finishes the short one)
+    if (ex && !live.some(it => it !== ex && it.w.plain.startsWith(buffer))) complete(ex);
+    else { renderBuffer(); paintCards(); }
+  }
+  function backspace() {
+    if (stage !== "board" || !buffer) return;
+    buffer = buffer.slice(0, -1); renderBuffer(); paintCards();
+  }
+  function complete(it) {
+    it.done = true; buffer = "";
+    renderBuffer(); paintCards(); renderLeft();
+    sfx.burst(); say(it.w.clip);
+    const sr = stageEl.getBoundingClientRect(), r = it.el.getBoundingClientRect();
+    const cx = r.left - sr.left + r.width / 2, cy = r.top - sr.top + r.height / 2;
+    spray(cx, cy, it);
+    // shoot off the board, away from the centre
+    const ang = Math.atan2(cy - sr.height / 2, cx - sr.width / 2) + (Math.random() - 0.5) * 0.9, dist = Math.hypot(sr.width, sr.height);
+    it.el.style.setProperty("--dx", (Math.cos(ang) * dist).toFixed(0) + "px");
+    it.el.style.setProperty("--dy", (Math.sin(ang) * dist).toFixed(0) + "px");
+    it.el.style.setProperty("--rot", ((Math.random() < 0.5 ? -1 : 1) * (30 + Math.random() * 60)).toFixed(0) + "deg");
+    it.el.style.animationDelay = "0s";
+    it.el.classList.remove("match", "dim"); it.el.classList.add("burst");
+    setTimeout(() => it.el.remove(), 900);
+    if (!remaining().length) {
+      stopWatch(SW.board); paintClock();
+      setTimeout(() => cheer(`All ${WORDS.length} words off the board in ${fmt(readWatch(SW.board))}`, startPara), 750);
+    }
+  }
+  function spray(x, y, it) {
+    if (reduced) return;
+    const col = getComputedStyle(it.el).getPropertyValue("--c").trim(), c = col.startsWith("var(") ? getComputedStyle(document.documentElement).getPropertyValue(col.slice(4, -1)).trim() : col;
+    parts.push({ ring: true, x, y, t: 0, life: 0.45, col: "#5ED3A2" });
+    [...it.w.es].forEach(ch => {
+      const a = Math.random() * Math.PI * 2, s = 140 + Math.random() * 220;
+      parts.push({ ch, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, r: 0, vr: (Math.random() - 0.5) * 12, t: 0, life: 0.9, col: c || "#F2B544" });
+    });
+    for (let i = 0; i < 26; i++) {
+      const a = Math.random() * Math.PI * 2, s = 80 + Math.random() * 260;
+      parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, t: 0, life: 0.7, col: i % 2 ? (c || "#F2B544") : "#5ED3A2", sz: 3 + Math.random() * 3 });
+    }
+    runLoop();
+  }
+  function drawFx(dt) {
+    fctx.clearRect(0, 0, fxW, fxH);
+    const fs = parseFloat(cardsEl.style.getPropertyValue("--fs")) || 30;
+    for (let i = parts.length - 1; i >= 0; i--) {
+      const p = parts[i]; p.t += dt;
+      if (p.t > p.life) { parts.splice(i, 1); continue; }
+      const k = 1 - p.t / p.life;
+      fctx.globalAlpha = Math.max(0, k);
+      if (p.ring) {
+        fctx.strokeStyle = p.col; fctx.lineWidth = 3 * k;
+        fctx.beginPath(); fctx.arc(p.x, p.y, 12 + (1 - k) * 90, 0, Math.PI * 2); fctx.stroke();
+        continue;
+      }
+      p.vy += 420 * dt; p.x += p.vx * dt; p.y += p.vy * dt;
+      if (p.ch) {
+        p.r += p.vr * dt;
+        fctx.save(); fctx.translate(p.x, p.y); fctx.rotate(p.r);
+        fctx.fillStyle = p.col; fctx.font = `700 ${Math.round(fs * 0.8)}px "Readex Pro", system-ui, sans-serif`;
+        fctx.textAlign = "center"; fctx.textBaseline = "middle"; fctx.fillText(p.ch, 0, 0); fctx.restore();
+      } else { fctx.fillStyle = p.col; fctx.fillRect(p.x - p.sz / 2, p.y - p.sz / 2, p.sz, p.sz); }
+    }
+    fctx.globalAlpha = 1;
+  }
+
+  // one animation loop for the clocks and the burst particles
+  let looping = false, lastT = 0, lastClock = "";
+  function runLoop() { if (looping) return; looping = true; lastT = performance.now(); requestAnimationFrame(frame); }
+  function frame(now) {
+    const dt = Math.min(0.05, (now - lastT) / 1000); lastT = now;
+    paintClock(); drawFx(dt);
+    if (stage === "board" || stage === "para" || parts.length) requestAnimationFrame(frame);
+    else { looping = false; fctx.clearRect(0, 0, fxW, fxH); }
+  }
+  function paintClock() {
+    const w = stage === "para" ? SW.para : SW.board, txt = fmt(readWatch(w));
+    const key = stage + txt; if (key === lastClock) return; lastClock = key;
+    if (stage === "board") $("boardTime").textContent = txt;
+    if (stage === "para") $("paraTime").firstChild.textContent = txt;
+  }
+
+  // ================= 2 · paragraph =================
+  let clusters = [], pos = 0;
+  function startPara() {
+    Object.assign(SW.para, mkWatch());
+    clusters = [...PARAGRAPH.es.normalize("NFC")].map(ch => ({ s: ch, base: plain(ch), typable: isLetter(ch) || ch === " " }));
+    $("para").innerHTML = clusters.map(c => `<span class="c">${c.s}</span>`).join("");
+    $("paraEn").textContent = PARAGRAPH.en;
+    $("paraTime").lastChild.hidden = false;
+    pos = 0; skipAuto();
+    setStage("para"); paintPara(); paintClock(); focusPhone(); runLoop();
+  }
+  const spans = () => $("para").children;
+  function skipAuto() { while (pos < clusters.length && !clusters[pos].typable) pos++; }
+  function paintPara() {
+    const sp = spans();
+    for (let i = 0; i < sp.length; i++) { sp[i].classList.toggle("ok", i < pos); sp[i].classList.toggle("now", i === pos); }
+    const typable = clusters.filter(c => c.typable).length, done = clusters.slice(0, pos).filter(c => c.typable).length;
+    $("paraBar").style.width = (done / typable * 100) + "%";
+    $("paraCount").textContent = `${done} of ${typable} letters`;
+    const now = sp[pos]; if (now && phone && now.scrollIntoView) now.scrollIntoView({ block: "nearest" });
+  }
+  function paraChar(c) {
+    if (pos >= clusters.length) return;
+    const p = plain(c);
+    if (!(c === " " || /^[a-z]$/.test(p))) return; // punctuation fills itself in, so typing it does nothing
+    startWatch(SW.para); $("paraTime").lastChild.hidden = true;
+    if (p === clusters[pos].base) {
+      sfx.key(); pos++; skipAuto(); paintPara();
+      if (pos >= clusters.length) {
+        stopWatch(SW.para); paintClock();
+        setTimeout(() => cheer(`Paragraph typed in ${fmt(readWatch(SW.para))}`, startWrite), 400);
+      }
+    } else {
+      sfx.wrong();
+      const s = spans()[pos]; if (s) { s.classList.add("bad"); setTimeout(() => s.classList.remove("bad"), 250); }
+    }
+  }
+  $("listenBtn").querySelector(".ic").innerHTML = SPEAKER;
+  $("listenBtn").addEventListener("click", () => {
+    const b = $("listenBtn");
+    if (b.classList.contains("playing")) stopVoice(); else playVoice(PARAGRAPH.clip, b);
+    b.blur(); focusPhone();
+  });
+  $("showEn").addEventListener("change", e => { $("paraEn").hidden = !e.target.checked; e.target.blur(); });
+
+  // ================= 3 · your sentences =================
+  let points = 0, usedCount = 0;
+  function usedWords(text) {
+    const toks = plain(text).match(/[a-z]+/g) || [];
+    return WORDS.map(w => toks.some(t => w.re.test(t)));
+  }
+  function startWrite() {
+    setStage("write");
+    $("wordlist").innerHTML = `<h3>Today's words <small>${PTS_EACH} points each</small></h3><ul>` +
+      WORDS.map((w, i) => `<li><button type="button" data-i="${i}" style="--c:${colorOf(w)}"><span class="tick" aria-hidden="true"></span><span class="w">${w.art ? `<small>${w.art}</small> ` : ""}${w.es}</span><span class="en">${w.en}</span><span class="pt">+${PTS_EACH}</span></button></li>`).join("") +
+      `</ul><p class="wl-note">Tap a word to drop it into your sentences. Each word scores once, however many times you use it.</p>`;
+    $("mine").value = ""; points = 0;
+    updateScore(false);
+    $("mine").focus({ preventScroll: true });
+  }
+  function updateScore(anim) {
+    const used = usedWords($("mine").value);
+    document.querySelectorAll("#wordlist li").forEach((li, i) => li.classList.toggle("used", used[i]));
+    usedCount = used.filter(Boolean).length;
+    const next = usedCount * PTS_EACH, lbl = $("ptsLbl");
+    if (anim && next > points) { lbl.classList.remove("bump"); void lbl.offsetWidth; lbl.classList.add("bump"); sfx.key(); }
+    points = next; lbl.textContent = points;
+  }
+  $("mine").addEventListener("input", () => updateScore(true));
+  $("wordlist").addEventListener("click", e => {
+    const b = e.target.closest("[data-i]"); if (!b) return;
+    const ta = $("mine"), w = WORDS[+b.dataset.i].es, s = ta.selectionStart ?? ta.value.length, en = ta.selectionEnd ?? s;
+    const before = ta.value.slice(0, s), pad = before && !/\s$/.test(before) ? " " : "";
+    ta.value = before + pad + w + " " + ta.value.slice(en);
+    const p = (before + pad + w + " ").length; ta.focus(); ta.setSelectionRange(p, p);
+    updateScore(true);
+  });
+  $("finishBtn").addEventListener("click", () => {
+    updateScore(false);
+    cheer(`${points} points from your sentences`, showResults);
+  });
+
+  // ================= results =================
+  function resultText() {
+    const lines = [
+      "💥 Root Rain Español · el mercado",
+      `Words off the screen: ${fmt(readWatch(SW.board))}`,
+      `Paragraph typed: ${fmt(readWatch(SW.para))}`,
+      `My sentences: ${points} points (${usedCount} of ${WORDS.length} words × ${PTS_EACH})`
+    ];
+    if (!SHARE_URL.startsWith("__")) lines.push("", `Play: ${SHARE_URL}`);
+    return lines.join("\n");
+  }
+  function showResults() {
+    setStage("results");
+    $("rWords").textContent = fmt(readWatch(SW.board));
+    $("rPara").textContent = fmt(readWatch(SW.para));
+    $("rPts").textContent = `${points} / ${MAX_PTS}`;
+    $("rPtsSub").textContent = `${usedCount} of ${WORDS.length} words used`;
+    $("preview").textContent = resultText();
+    $("copied").textContent = "";
+  }
+  $("copyBtn").addEventListener("click", () => {
+    const text = resultText(), done = () => { $("copied").textContent = "Copied. Paste it anywhere to share."; };
+    const fallback = () => {
+      const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.opacity = "0";
+      document.body.appendChild(ta); ta.select();
+      let ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+      ta.remove();
+      if (ok) done();
+      else {
+        $("copied").textContent = "Couldn't copy here. The text above is selected, so copy it by hand.";
+        const r = document.createRange(); r.selectNodeContents($("preview")); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+      }
+    };
+    try { navigator.clipboard.writeText(text).then(done, fallback); } catch (e) { fallback(); }
+  });
+  $("againBtn").addEventListener("click", () => { cheerOrder = shuffle([0, 1, 2]); cheerN = 0; startBoard(); });
+
+  // ================= input =================
+  function typeStr(s) {
+    for (const c of s) {
+      if (c === MARK) continue;
+      if (stage === "board") boardChar(c);
+      else if (stage === "para") paraChar(c);
+    }
+  }
+  window.addEventListener("keydown", e => {
+    if (!$("flash").hidden) { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); cheerDone && cheerDone(); } return; }
+    if (e.target === phoneIn || e.target.tagName === "TEXTAREA") return;
+    if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (stage !== "board" && stage !== "para") return;
+    if (e.key === "Backspace") { e.preventDefault(); backspace(); return; }
+    if (e.key === "Escape") { if (stage === "board") { buffer = ""; renderBuffer(); paintCards(); } return; }
+    let s = null;
+    if (e.key === "Enter") s = stage === "board" ? " " : null;
+    else if (e.key && [...e.key].length === 1) s = e.key;
+    if (s) {
+      e.preventDefault();
+      if (document.activeElement && document.activeElement.tagName === "BUTTON") document.activeElement.blur();
+      typeStr(s);
+    }
+  });
+
+  // ================= start up =================
+  $("startBtn").addEventListener("click", () => { tone(1, 1, 0.01, "sine", 0.0001); startBoard(); });
+  setStage("intro");
+  setTimeout(() => { WORDS.forEach(w => clip(w.clip)); CHEERS.forEach(c => clip(c.clip)); }, 300);
+})();
+</script>
