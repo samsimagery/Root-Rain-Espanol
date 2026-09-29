@@ -1,6 +1,6 @@
-# Root Rain Español
+# Las frases del día
 
-A Spanish version of the Root Rain typing game, built as a one-off test round (not scheduled, no daily updates).
+A Spanish typing game based on Root Rain, built as a one-off test round (not scheduled, no daily updates).
 
 Play it: https://claude.ai/artifact/XRasiCGNX9i6y4o8dG8Myy
 
